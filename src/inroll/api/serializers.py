@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User, Test, Question, Choice, Submission, Answer
+from .models import User, Test, Question, Choice, Submission, ChoiceAnswer, OpenEndedAnswer
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,7 +16,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Question
-        fields = ['id', 'test', 'body', 'choices']
+        fields = ['id', 'test', 'body', 'question_type', 'choices']
 
 class TestSerializer(serializers.ModelSerializer):
     questions = QuestionSerializer(many=True, read_only=True)
@@ -30,7 +30,12 @@ class SubmissionSerializer(serializers.ModelSerializer):
         model = Submission
         fields = ['id', 'user']
 
-class AnswerSerializer(serializers.ModelSerializer):
+class ChoiceAnswerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Answer
-        fields = ['id', 'submission', 'question', 'choice']
+        model = ChoiceAnswer
+        fields = ['id', 'submission', 'choice']
+
+class OpenEndedAnswerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OpenEndedAnswer
+        fields = ['id', 'submission', 'question', 'response']

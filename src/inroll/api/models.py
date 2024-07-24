@@ -35,8 +35,20 @@ class Test(models.Model):
         return self.title
 
 class Question(models.Model):
+    MULTIPLE_CHOICE = 'MC'
+    OPEN_ENDED = 'OE'
+    QUESTION_TYPE_CHOICES = [
+        (MULTIPLE_CHOICE, 'Multiple Choice'),
+        (OPEN_ENDED, 'Open Ended'),
+    ]
+
     test = models.ForeignKey(Test, related_name='questions', on_delete=models.CASCADE)
     body = models.TextField()
+    question_type = models.CharField(
+        max_length=2,
+        choices=QUESTION_TYPE_CHOICES,
+        default=MULTIPLE_CHOICE,
+    )
 
     def __str__(self):
         return self.body
@@ -54,8 +66,16 @@ class Submission(models.Model):
 
 class Answer(models.Model):
     submission = models.ForeignKey(Submission, related_name='answers', on_delete=models.CASCADE)
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+
+class ChoiceAnswer(Answer):
     choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.submission} - {self.question} - {self.choice}"
+        return f"{self.submission} - {self.choice.question} - {self.choice}"
+    
+class OpenEndedAnswer(Answer):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    response = models.TextField()
+
+    def __str__(self):
+        return f"{self.submission} - {self.question} - {self.response}"

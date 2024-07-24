@@ -1,6 +1,6 @@
 from rest_framework import viewsets
-from .models import User, Test, Question, Choice, Submission, Answer
-from .serializers import UserSerializer, TestSerializer, QuestionSerializer, ChoiceSerializer, SubmissionSerializer, AnswerSerializer
+from .models import User, Test, Question, Choice, Submission, ChoiceAnswer, OpenEndedAnswer
+from .serializers import UserSerializer, TestSerializer, QuestionSerializer, ChoiceSerializer, SubmissionSerializer, ChoiceAnswerSerializer, OpenEndedAnswerSerializer
 
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
@@ -22,6 +22,10 @@ class SubmissionViewSet(viewsets.ModelViewSet):
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
 
-class AnswerViewSet(viewsets.ModelViewSet):
-    queryset = Answer.objects.all()
-    serializer_class = AnswerSerializer
+class ChoiceAnswerViewSet(viewsets.ModelViewSet):
+    queryset = ChoiceAnswer.objects.all()
+    serializer_class = ChoiceAnswerSerializer
+
+class OpenEndedAnswerViewSet(viewsets.ModelViewSet):
+    queryset = OpenEndedAnswer.objects.all()
+    serializer_class = OpenEndedAnswerSerializer
