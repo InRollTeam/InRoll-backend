@@ -1,36 +1,69 @@
 from rest_framework import serializers
-from .models import User, Test, Question, Choice, Submission, Answer
+from .models import Test, Question, Choice, Submission, ChoiceAnswer, OpenEndedAnswer, Candidate, Recruiter, Answer
 
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = User
-        fields = ['id', 'email', 'role']
-
+# Test related serializers
 class ChoiceSerializer(serializers.ModelSerializer):
+    is_true = serializers.BooleanField(write_only=True)
+
     class Meta:
         model = Choice
-        fields = ['id', 'question', 'content', 'is_true']
+        fields = ['id', 'question', 'body', 'is_true']
 
 class QuestionSerializer(serializers.ModelSerializer):
-    choices = ChoiceSerializer(many=True, read_only=True)
+    choices = ChoiceSerializer(many=True)
 
     class Meta:
         model = Question
-        fields = ['id', 'test', 'body', 'choices']
+        fields = ['id', 'test', 'body', 'question_type', 'choices']
 
 class TestSerializer(serializers.ModelSerializer):
-    questions = QuestionSerializer(many=True, read_only=True)
+    questions = QuestionSerializer(many=True)
 
     class Meta:
         model = Test
-        fields = ['id', 'title', 'type', 'questions']
+        fields = ['id', 'recruiter', 'duration', 'until_date', 'title', 'body', 'questions']
 
-class SubmissionSerializer(serializers.ModelSerializer):
+# Answer serializers
+class ChoiceAnswerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Submission
-        fields = ['id', 'user']
+        model = ChoiceAnswer
+        fields = ['id', 'submission', 'question', 'choice']
+
+class OpenEndedAnswerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OpenEndedAnswer
+        fields = ['id', 'submission', 'question', 'response']
 
 class AnswerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Answer
-        fields = ['id', 'submission', 'question', 'choice']
+        fields = ['id', 'submission', 'question']
+
+    def to_representation(self, instance):
+        if isinstance(instance, ChoiceAnswer):
+            return ChoiceAnswerSerializer(instance).data
+        elif isinstance(instance, OpenEndedAnswer):
+            return OpenEndedAnswerSerializer(instance).data
+        return super().to_representation(instance)
+
+class SubmissionSerializer(serializers.ModelSerializer):
+    answers = AnswerSerializer(many=True)
+
+    class Meta:
+        model = Submission
+        fields = ['id', 'user', 'answers']
+
+# User serializers
+class CandidateSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+
+    class Meta:
+        model = Candidate
+        fiels = ['id', 'password', 'email', 'phone_number', 'first_name', 'last_name']
+
+class RecruiterSerializer(serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True)
+    
+    class Meta:
+        model = Recruiter
+        fiels = ['id', 'password', 'email', 'phone_number', 'first_name', 'last_name', 'company_name']
