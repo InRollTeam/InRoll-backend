@@ -10,8 +10,7 @@ from .views import (
     TestViewSet, 
     QuestionViewSet, 
     ChoiceViewSet, 
-    SubmissionViewSet, 
-    AnswerViewSet,
+    SubmissionViewSet,
     CandidateAssignedTests,
     RecruiterAvailableTests,
     CandidateSubmissions,
@@ -22,7 +21,6 @@ router.register(r'tests', TestViewSet)
 router.register(r'questions', QuestionViewSet)
 router.register(r'choices', ChoiceViewSet)
 router.register(r'submissions', SubmissionViewSet)
-router.register(r'answers', AnswerViewSet)
 router.register(r'candidates', CandidateViewSet)
 router.register(r'recruiters', RecruiterViewSet)
 
