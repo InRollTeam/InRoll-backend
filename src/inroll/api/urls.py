@@ -15,6 +15,8 @@ from .views import (
     CandidateAssignedTests,
     RecruiterAvailableTests,
     CandidateSubmissions,
+    GetRoutes,
+    CorrectChoices,
 )
 
 router = DefaultRouter()
