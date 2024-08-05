@@ -36,17 +36,23 @@ class SubmissionViewSet(viewsets.ModelViewSet):
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
 
+# Do not forget to update this view in order to show all possible endpoints at root
 class GetRoutes(APIView):
     def get(self, request):
         prefix = "http://localhost:8000/api/"
         apiroutes = [
-            prefix+"users/",
             prefix+"tests/",
             prefix+"questions/",
-            prefix+"questions/correct-choices/",
+            prefix+"questions/<int:pk>/correct-choices/",
             prefix+"choices/",
-            prefix+"answers/",
+            prefix+"choice-answers/",
+            prefix+"open-ended-answers",
             prefix+"submissions/",
+            prefix+"candidates/",
+            prefix+"candidates/<int:candidate_id>/assigned-tests/",
+            prefix+"candidates/<int:candidate_id>/submissions/",
+            prefix+"recruiters",
+            prefix+"recruiters/<int:recruiter_id>/available-tests/",
             prefix+"token/",
             prefix+"token/refresh/",
         ]
@@ -62,8 +68,8 @@ class OpenEndedAnswerViewSet(viewsets.ModelViewSet):
 
 #Function for viewing all assigned tests for a specific candidate
 class CandidateAssignedTests(APIView):
-    def get(self, request, candidate_id):
-        candidate = get_object_or_404(Candidate, id=candidate_id)
+    def get(self, request, id, format=None):
+        candidate = get_object_or_404(Candidate, id=id)
         assigned_test_ids = UserTestMap.objects.filter(candidate=candidate).values_list('test_id', flat=True)
         assigned_tests = Test.objects.filter(id__in=assigned_test_ids)
 
@@ -72,8 +78,8 @@ class CandidateAssignedTests(APIView):
 
 #Listing all available tests for recruiter without giving questions
 class RecruiterAvailableTests(APIView):
-    def get(self, request, recruiter_id):
-        recruiter = get_object_or_404(Recruiter, id=recruiter_id)
+    def get(self, request, id, format=None):
+        recruiter = get_object_or_404(Recruiter, id=id)
         available_tests = Test.objects.filter(recruiter=recruiter)
         serializer = TestSerializer(available_tests, many=True)
 
@@ -81,8 +87,8 @@ class RecruiterAvailableTests(APIView):
 
 #Listing all of the submissions of a candidate
 class CandidateSubmissions(APIView):
-    def get(self, request, candidate_id):
-        candidate = get_object_or_404(Candidate, id=candidate_id)
+    def get(self, request, id, format=None):
+        candidate = get_object_or_404(Candidate, id=id)
         submissions = Submission.objects.filter(candidate=candidate)
         serializer = SubmissionSerializer(submissions, many=True)
         

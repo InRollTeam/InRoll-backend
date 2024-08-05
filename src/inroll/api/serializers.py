@@ -3,67 +3,64 @@ from .models import Test, Question, Choice, Submission, ChoiceAnswer, OpenEndedA
 
 # Test related serializers
 class ChoiceSerializer(serializers.ModelSerializer):
-    is_true = serializers.BooleanField(write_only=True)
-
     class Meta:
         model = Choice
         fields = ['id', 'question', 'body', 'is_true']
 
 class QuestionSerializer(serializers.ModelSerializer):
-    choices = ChoiceSerializer(many=True)
-
     class Meta:
         model = Question
-        fields = ['id', 'test', 'body', 'question_type', 'choices']
+        fields = ['id', 'test', 'body', 'question_type']
 
 class TestSerializer(serializers.ModelSerializer):
-    questions = QuestionSerializer(many=True)
-
     class Meta:
         model = Test
-        fields = ['id', 'recruiter', 'duration', 'until_date', 'title', 'body', 'questions']
+        fields = ['id', 'recruiter', 'duration', 'until_date', 'title', 'body']
 
 # Answer serializers
-class ChoiceAnswerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ChoiceAnswer
-        fields = ['id', 'submission', 'question', 'choice']
-
-class OpenEndedAnswerSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = OpenEndedAnswer
-        fields = ['id', 'submission', 'question', 'response']
-
 class AnswerSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Answer
+        model = None
         fields = ['id', 'submission', 'question']
 
-    def to_representation(self, instance):
-        if isinstance(instance, ChoiceAnswer):
-            return ChoiceAnswerSerializer(instance).data
-        elif isinstance(instance, OpenEndedAnswer):
-            return OpenEndedAnswerSerializer(instance).data
-        return super().to_representation(instance)
+class ChoiceAnswerSerializer(AnswerSerializer):
+    class Meta(AnswerSerializer.Meta):
+        model = ChoiceAnswer
+        fields = AnswerSerializer.Meta.fields + ['choice']
+
+class OpenEndedAnswerSerializer(AnswerSerializer):
+    class Meta(AnswerSerializer.Meta):
+        model = OpenEndedAnswer
+        fields = AnswerSerializer.Meta.fields + ['response']
 
 class SubmissionSerializer(serializers.ModelSerializer):
-    answers = AnswerSerializer(many=True)
-
     class Meta:
         model = Submission
-        fields = ['id', 'user', 'answers']
+        fields = ['id', 'candidate', 'test', 'date']
 
 # User serializers
-class CandidateSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
     class Meta:
+        model = None
+        fields = ['id', 'password', 'email', 'phone_number', 'first_name', 'last_name']
+
+    def validate(self, data):
+        email = data.get('email')
+        phone_number = data.get('phone_number')
+        if Recruiter.objects.filter(email=email).exists() or Candidate.objects.filter(email=email).exists():
+            raise serializers.ValidationError({'email': 'This email is already in use.'})
+        if Recruiter.objects.filter(phone_number=phone_number).exists() or Candidate.objects.filter(phone_number=phone_number).exists():
+            raise serializers.ValidationError({'phone_number': 'This phone number is already in use.'})
+        return data
+
+class CandidateSerializer(UserSerializer):
+    class Meta(UserSerializer.Meta):
         model = Candidate
-        fiels = ['id', 'password', 'email', 'phone_number', 'first_name', 'last_name']
+        fields = UserSerializer.Meta.fields
 
 class RecruiterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
-    
     class Meta:
         model = Recruiter
-        fiels = ['id', 'password', 'email', 'phone_number', 'first_name', 'last_name', 'company_name']
+        fields = UserSerializer.Meta.fields + ['company_name']
