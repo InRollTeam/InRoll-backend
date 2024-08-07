@@ -55,7 +55,7 @@ class Candidate(User):
     pass
 
 class Test(models.Model):
-    recruiter = models.ForeignKey(Recruiter, related_name="tests", on_delete=models.CASCADE)
+    recruiter = models.ForeignKey(Recruiter, related_name="created_tests", on_delete=models.CASCADE)
     duration = models.DurationField()
     until_date = models.DateTimeField()
     title = models.CharField(max_length=255)
@@ -65,7 +65,7 @@ class Test(models.Model):
         return self.title
     
 class UserTestMap(models.Model):
-    candidate = models.ForeignKey(Candidate, related_name="tests", on_delete=models.CASCADE)
+    candidate = models.ForeignKey(Candidate, related_name="assigned_tests", on_delete=models.CASCADE)
     test = models.ForeignKey(Test, related_name="candidates", on_delete=models.CASCADE)
     duration = models.DurationField()
 
@@ -97,24 +97,25 @@ class Choice(models.Model):
         return self.body
 
 class Submission(models.Model):
-    candidate = models.ForeignKey(Candidate, related_name="submissions", on_delete=models.CASCADE)
+    candidate = models.ForeignKey(Candidate, related_name="made_submissions", on_delete=models.CASCADE)
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
     date = models.DateTimeField()
 
 class Answer(models.Model):
-    submission = models.ForeignKey(Submission, related_name='answers', on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
 
     class Meta:
         abstract = True
 
 class ChoiceAnswer(Answer):
+    submission = models.ForeignKey(Submission, related_name='choice_answers', on_delete=models.CASCADE)
     choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.submission} - {self.choice.question} - {self.choice}"
     
 class OpenEndedAnswer(Answer):
+    submission = models.ForeignKey(Submission, related_name='open_ended_answers', on_delete=models.CASCADE)
     response = models.TextField()
 
     def __str__(self):
