@@ -49,10 +49,10 @@ class GetRoutes(APIView):
             prefix+"open-ended-answers",
             prefix+"submissions/",
             prefix+"candidates/",
-            prefix+"candidates/<int:candidate_id>/assigned-tests/",
-            prefix+"candidates/<int:candidate_id>/submissions/",
+            prefix+"candidates/<int:id>/assigned-tests/",
+            prefix+"candidates/<int:id>/submissions/",
             prefix+"recruiters",
-            prefix+"recruiters/<int:recruiter_id>/available-tests/",
+            prefix+"recruiters/<int:id>/available-tests/",
             prefix+"token/",
             prefix+"token/refresh/",
         ]
