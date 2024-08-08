@@ -3,19 +3,25 @@ from .models import Test, Question, Choice, Submission, ChoiceAnswer, OpenEndedA
 
 # Test related serializers
 class ChoiceSerializer(serializers.ModelSerializer):
+    is_true = serializers.BooleanField(write_only=True)
+
     class Meta:
         model = Choice
         fields = ['id', 'question', 'body', 'is_true']
 
 class QuestionSerializer(serializers.ModelSerializer):
+    choices = ChoiceSerializer(many=True, read_only=True)
+
     class Meta:
         model = Question
-        fields = ['id', 'test', 'body', 'question_type']
+        fields = ['id', 'test', 'body', 'question_type', 'choices']
 
 class TestSerializer(serializers.ModelSerializer):
+    questions = QuestionSerializer(many=True, read_only=True)
+
     class Meta:
         model = Test
-        fields = ['id', 'recruiter', 'duration', 'until_date', 'title', 'body']
+        fields = ['id', 'recruiter', 'duration', 'until_date', 'title', 'body', 'questions']
 
 # Answer serializers
 class AnswerSerializer(serializers.ModelSerializer):
