@@ -1,21 +1,42 @@
 from rest_framework import serializers
-from .models import Test, Question, Choice, Submission, ChoiceAnswer, OpenEndedAnswer, Candidate, Recruiter, Answer
+from .models import (
+    Candidate, Recruiter,
+    Test, MultipleChoiceQuestion, OpenEndedQuestion, 
+    Choice, Submission, ChoiceAnswer, OpenEndedAnswer, 
+)
 
 # Test related serializers
 class ChoiceSerializer(serializers.ModelSerializer):
+    is_true = serializers.BooleanField(write_only=True)
+
     class Meta:
         model = Choice
         fields = ['id', 'question', 'body', 'is_true']
 
 class QuestionSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Question
-        fields = ['id', 'test', 'body', 'question_type']
+        model = None
+        fields = ['id', 'test', 'body']
+
+class MultipleChoiceQuestionSerializer(QuestionSerializer):
+    choices = ChoiceSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = MultipleChoiceQuestion
+        fields = QuestionSerializer.Meta.fields + ['choices']
+
+class OpenEndedQuestionSerializer(QuestionSerializer):
+    class Meta:
+        model = OpenEndedQuestion
+        fields = QuestionSerializer.Meta.fields
 
 class TestSerializer(serializers.ModelSerializer):
+    multiple_choice_questions = MultipleChoiceQuestionSerializer(many=True, read_only=True)
+    open_ended_questions = OpenEndedQuestionSerializer(many=True, read_only=True)
+
     class Meta:
         model = Test
-        fields = ['id', 'recruiter', 'duration', 'until_date', 'title', 'body']
+        fields = ['id', 'recruiter', 'duration', 'until_date', 'title', 'body', 'multiple_choice_questions', 'open_ended_questions']
 
 # Answer serializers
 class AnswerSerializer(serializers.ModelSerializer):
@@ -34,9 +55,12 @@ class OpenEndedAnswerSerializer(AnswerSerializer):
         fields = AnswerSerializer.Meta.fields + ['response']
 
 class SubmissionSerializer(serializers.ModelSerializer):
+    choice_answers = ChoiceAnswerSerializer(many=True, read_only=True)
+    open_ended_answers = OpenEndedAnswerSerializer(many=True, read_only=True)
+
     class Meta:
         model = Submission
-        fields = ['id', 'candidate', 'test', 'date']
+        fields = ['id', 'candidate', 'test', 'date', 'choice_answers', 'open_ended_answers']
 
 # User serializers
 class UserSerializer(serializers.ModelSerializer):
