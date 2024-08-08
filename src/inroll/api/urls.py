@@ -6,30 +6,23 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from .views import (
-    CandidateViewSet,
-    RecruiterViewSet, 
-    TestViewSet, 
-    QuestionViewSet, 
-    ChoiceViewSet, 
-    SubmissionViewSet,
-    ChoiceAnswerViewSet,
-    OpenEndedAnswerViewSet,
-    CandidateAssignedTests,
-    RecruiterAvailableTests,
+    CandidateViewSet, RecruiterViewSet, CandidateAssignedTests, RecruiterAvailableTests, 
+    TestViewSet, MultipleChoiceQuestionViewSet, OpenEndedQuestionViewSet,
+    ChoiceViewSet, SubmissionViewSet, ChoiceAnswerViewSet, OpenEndedAnswerViewSet, CorrectChoices,
     CandidateSubmissions,
     GetRoutes,
-    CorrectChoices,
 )
 
 router = DefaultRouter()
 router.register(r'tests', TestViewSet)
-router.register(r'questions', QuestionViewSet)
+router.register(r'mc-questions', MultipleChoiceQuestionViewSet)
+router.register(r'oe-questions', OpenEndedQuestionViewSet)
 router.register(r'choices', ChoiceViewSet)
 router.register(r'submissions', SubmissionViewSet)
 router.register(r'candidates', CandidateViewSet)
 router.register(r'recruiters', RecruiterViewSet)
 router.register(r'choice-answers', ChoiceAnswerViewSet)
-router.register(r'open-ended-answers', OpenEndedAnswerViewSet)
+router.register(r'oe-answers', OpenEndedAnswerViewSet)
 
 custom_urlpatterns = [
     path('questions/<int:pk>/correct-choices/', CorrectChoices.as_view(), name="correct-choices"),

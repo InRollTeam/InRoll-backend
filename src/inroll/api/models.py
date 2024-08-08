@@ -70,26 +70,22 @@ class UserTestMap(models.Model):
     duration = models.DurationField()
 
 class Question(models.Model):
-    MULTIPLE_CHOICE = 'MC'
-    OPEN_ENDED = 'OE'
-    QUESTION_TYPE_CHOICES = [
-        (MULTIPLE_CHOICE, 'Multiple Choice'),
-        (OPEN_ENDED, 'Open Ended'),
-    ]
-
-    test = models.ForeignKey(Test, related_name='questions', on_delete=models.CASCADE)
     body = models.TextField()
-    question_type = models.CharField(
-        max_length=2,
-        choices=QUESTION_TYPE_CHOICES,
-        default=MULTIPLE_CHOICE,
-    )
+
+    class Meta:
+        abstract = True
 
     def __str__(self):
         return self.body
 
+class MultipleChoiceQuestion(Question):
+    test = models.ForeignKey(Test, related_name='multiple_choice_questions', on_delete=models.CASCADE)
+
+class OpenEndedQuestion(Question):
+    test = models.ForeignKey(Test, related_name='open_ended_questions', on_delete=models.CASCADE)
+
 class Choice(models.Model):
-    question = models.ForeignKey(Question, related_name='choices', on_delete=models.CASCADE)
+    question = models.ForeignKey(MultipleChoiceQuestion, related_name='choices', on_delete=models.CASCADE)
     body = models.TextField()
     is_true = models.BooleanField(default=False)
 
@@ -101,20 +97,16 @@ class Submission(models.Model):
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
     date = models.DateTimeField()
 
-class Answer(models.Model):
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
-
-    class Meta:
-        abstract = True
-
-class ChoiceAnswer(Answer):
+class ChoiceAnswer(models.Model):
+    question = models.ForeignKey(MultipleChoiceQuestion, on_delete=models.CASCADE)
     submission = models.ForeignKey(Submission, related_name='choice_answers', on_delete=models.CASCADE)
     choice = models.ForeignKey(Choice, on_delete=models.CASCADE)
 
     def __str__(self):
         return f"{self.submission} - {self.choice.question} - {self.choice}"
     
-class OpenEndedAnswer(Answer):
+class OpenEndedAnswer(models.Model):
+    question = models.ForeignKey(OpenEndedQuestion, on_delete=models.CASCADE)
     submission = models.ForeignKey(Submission, related_name='open_ended_answers', on_delete=models.CASCADE)
     response = models.TextField()
 

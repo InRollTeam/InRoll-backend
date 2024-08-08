@@ -1,8 +1,17 @@
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Candidate, Recruiter, Test, Question, Choice, Submission, ChoiceAnswer, OpenEndedAnswer, UserTestMap
-from .serializers import CandidateSerializer, RecruiterSerializer, TestSerializer, QuestionSerializer, ChoiceSerializer, SubmissionSerializer, ChoiceAnswerSerializer, OpenEndedAnswerSerializer
+from .models import (
+    Candidate, Recruiter, 
+    Test, OpenEndedQuestion, MultipleChoiceQuestion, 
+    Choice, Submission, ChoiceAnswer, OpenEndedAnswer, 
+    UserTestMap,
+)
+from .serializers import (
+    CandidateSerializer, RecruiterSerializer, 
+    TestSerializer, MultipleChoiceQuestionSerializer, OpenEndedQuestionSerializer,
+    ChoiceSerializer, SubmissionSerializer, ChoiceAnswerSerializer, OpenEndedAnswerSerializer,
+)
 from django.shortcuts import get_object_or_404
 
 class CandidateViewSet(viewsets.ModelViewSet):
@@ -17,13 +26,17 @@ class TestViewSet(viewsets.ModelViewSet):
     queryset = Test.objects.all()
     serializer_class = TestSerializer
 
-class QuestionViewSet(viewsets.ModelViewSet):
-    queryset = Question.objects.all()
-    serializer_class = QuestionSerializer
+class MultipleChoiceQuestionViewSet(viewsets.ModelViewSet):
+    queryset = MultipleChoiceQuestion.objects.all()
+    serializer_class = MultipleChoiceQuestionSerializer
+
+class OpenEndedQuestionViewSet(viewsets.ModelViewSet):
+    queryset = OpenEndedQuestion.objects.all()
+    serializer_class = OpenEndedQuestionSerializer
 
 class CorrectChoices(APIView):
     def get(self, request, pk, format=None):
-        question = get_object_or_404(Question, pk=pk)
+        question = get_object_or_404(MultipleChoiceQuestion, pk=pk)
         correct_choices = question.choices.filter(is_true=True)
         serializer = ChoiceSerializer(correct_choices, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -42,11 +55,12 @@ class GetRoutes(APIView):
         prefix = "http://localhost:8000/api/"
         apiroutes = [
             prefix+"tests/",
-            prefix+"questions/",
-            prefix+"questions/<int:pk>/correct-choices/",
+            prefix+"mc-questions/",
+            prefix+"mc-questions/<int:pk>/correct-choices/",
+            prefix+"oe-questions/",
             prefix+"choices/",
             prefix+"choice-answers/",
-            prefix+"open-ended-answers",
+            prefix+"oe-answers",
             prefix+"submissions/",
             prefix+"candidates/",
             prefix+"candidates/<int:candidate_id>/assigned-tests/",
