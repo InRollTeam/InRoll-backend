@@ -11,6 +11,7 @@ from .serializers import (
     CandidateSerializer, RecruiterSerializer, 
     TestSerializer, MultipleChoiceQuestionSerializer, OpenEndedQuestionSerializer,
     ChoiceSerializer, SubmissionSerializer, ChoiceAnswerSerializer, OpenEndedAnswerSerializer,
+    AssignTestSerializer,
 )
 from django.shortcuts import get_object_or_404
 
@@ -69,6 +70,7 @@ class GetRoutes(APIView):
             prefix+"recruiters/<int:id>/available-tests/",
             prefix+"token/",
             prefix+"token/refresh/",
+            prefix+"assign-test"
         ]
         return Response(apiroutes)
 
@@ -107,3 +109,15 @@ class CandidateSubmissions(APIView):
         serializer = SubmissionSerializer(submissions, many=True)
         
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class AssignTest(APIView):
+    def post(self, request, format=None):
+        serializer = AssignTestSerializer(data=request.data)
+        if serializer.is_valid():
+            candidate_id = serializer.validated_data['candidate'].id
+            test_id = serializer.validated_data['test'].id
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

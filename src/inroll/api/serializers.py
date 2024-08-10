@@ -3,6 +3,7 @@ from .models import (
     Candidate, Recruiter,
     Test, MultipleChoiceQuestion, OpenEndedQuestion, 
     Choice, Submission, ChoiceAnswer, OpenEndedAnswer, 
+    UserTestMap,
 )
 
 # Test related serializers
@@ -88,3 +89,9 @@ class RecruiterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recruiter
         fields = UserSerializer.Meta.fields + ['company_name']
+
+
+class AssignTestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UserTestMap
+        fields = ['candidate', 'test', 'duration']
