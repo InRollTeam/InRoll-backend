@@ -63,6 +63,7 @@ class GetRoutes(APIView):
             prefix+"choice-answers/",
             prefix+"oe-answers",
             prefix+"submissions/",
+            prefix+"get-submission/?candidate=<int:candidate_id>&test=<int:test_id>",
             prefix+"candidates/",
             prefix+"candidates/<int:id>/assigned-tests/",
             prefix+"candidates/<int:id>/submissions/",
@@ -70,7 +71,6 @@ class GetRoutes(APIView):
             prefix+"recruiters/<int:id>/available-tests/",
             prefix+"token/",
             prefix+"token/refresh/",
-            prefix+"assign-test"
         ]
         return Response(apiroutes)
 
@@ -121,3 +121,31 @@ class AssignTest(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+class GetSubmission(APIView):
+    def get(self, request, format=None):
+        candidate_id = request.query_params.get('candidate')
+        test_id = request.query_params.get('test')
+
+        if not candidate_id or not test_id:
+            return Response(
+                {'detail' : 'ID missing'},
+                status = status.HTTP_400_BAD_REQUEST
+            )
+        
+        candidate = get_object_or_404(Candidate, id=candidate_id)
+        test = get_object_or_404(Test, id=test_id)
+
+        submission = Submission.objects.filter(candidate=candidate, test=test).first() # Might need a better solution
+
+        if not submission:
+            return Response(
+                {'detail' : 'Submission does not exist'},
+                status = status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = SubmissionSerializer(submission)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+            
+
+        

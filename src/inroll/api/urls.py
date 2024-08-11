@@ -12,6 +12,7 @@ from .views import (
     CandidateSubmissions,
     GetRoutes,
     AssignTest,
+    GetSubmission,
 )
 
 router = DefaultRouter()
@@ -30,7 +31,8 @@ custom_urlpatterns = [
     path('candidates/<int:id>/assigned-tests/', CandidateAssignedTests.as_view(), name='candidate-assigned-tests'),
     path('candidates/<int:id>/submissions/', CandidateSubmissions.as_view(), name='candidate-submissions'),
     path('recruiters/<int:id>/available-tests/', RecruiterAvailableTests.as_view(), name='recruiter-available-tests'),
-    path('assign-test', AssignTest.as_view(), name='assign-test')
+    path('assign-test', AssignTest.as_view(), name='assign-test'),
+    path('get-submission/', GetSubmission.as_view(), name='get-submission')
 ]
 
 custom_urlpatterns = format_suffix_patterns(custom_urlpatterns)
