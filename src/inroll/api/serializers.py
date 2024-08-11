@@ -85,7 +85,7 @@ class CandidateSerializer(UserSerializer):
         model = Candidate
         fields = UserSerializer.Meta.fields
 
-class RecruiterSerializer(serializers.ModelSerializer):
+class RecruiterSerializer(UserSerializer):
     class Meta:
         model = Recruiter
         fields = UserSerializer.Meta.fields + ['company_name']
