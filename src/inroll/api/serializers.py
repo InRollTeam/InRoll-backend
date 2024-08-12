@@ -32,12 +32,33 @@ class OpenEndedQuestionSerializer(QuestionSerializer):
         fields = QuestionSerializer.Meta.fields
 
 class TestSerializer(serializers.ModelSerializer):
-    multiple_choice_questions = MultipleChoiceQuestionSerializer(many=True, read_only=True)
-    open_ended_questions = OpenEndedQuestionSerializer(many=True, read_only=True)
+    questions = serializers.SerializerMethodField()
 
     class Meta:
         model = Test
-        fields = ['id', 'recruiter', 'duration', 'until_date', 'title', 'body', 'multiple_choice_questions', 'open_ended_questions']
+        fields = ['id', 'recruiter', 'duration', 'until_date', 'title', 'body', 'questions']
+
+    def get_questions(self, obj):
+        multiple_choice_questions = MultipleChoiceQuestionSerializer(obj.multiple_choice_questions.all(), many=True).data
+        open_ended_questions = OpenEndedQuestionSerializer(obj.open_ended_questions.all(), many=True).data
+
+        return multiple_choice_questions + open_ended_questions
+
+    def create(self, validated_data):
+        questions_data = self.initial_data.get('questions')
+        test = Test.objects.create(**validated_data)
+        
+        for question_data in questions_data:
+            choices_data = question_data.pop('choices', None)
+            
+            if choices_data:
+                multiple_choice_question = MultipleChoiceQuestion.objects.create(test=test, **question_data)
+                for choice_data in choices_data:
+                    Choice.objects.create(question=multiple_choice_question, **choice_data)
+            else:
+                OpenEndedQuestion.objects.create(test=test, **question_data)
+                
+        return test
 
 # Answer serializers
 class AnswerSerializer(serializers.ModelSerializer):
@@ -89,7 +110,6 @@ class RecruiterSerializer(UserSerializer):
     class Meta:
         model = Recruiter
         fields = UserSerializer.Meta.fields + ['company_name']
-
 
 class AssignTestSerializer(serializers.ModelSerializer):
     class Meta:
