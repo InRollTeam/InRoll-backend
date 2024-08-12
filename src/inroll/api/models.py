@@ -71,6 +71,7 @@ class UserTestMap(models.Model):
 
 class Question(models.Model):
     body = models.TextField()
+    order = models.PositiveSmallIntegerField()
 
     class Meta:
         abstract = True

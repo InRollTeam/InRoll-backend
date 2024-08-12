@@ -15,9 +15,11 @@ class ChoiceSerializer(serializers.ModelSerializer):
         fields = ['id', 'question', 'body', 'is_true']
 
 class QuestionSerializer(serializers.ModelSerializer):
+    order = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = None
-        fields = ['id', 'test', 'body']
+        fields = ['id', 'test', 'body', 'order']
 
 class MultipleChoiceQuestionSerializer(QuestionSerializer):
     choices = ChoiceSerializer(many=True, read_only=True)
@@ -41,14 +43,17 @@ class TestSerializer(serializers.ModelSerializer):
     def get_questions(self, obj):
         multiple_choice_questions = MultipleChoiceQuestionSerializer(obj.multiple_choice_questions.all(), many=True).data
         open_ended_questions = OpenEndedQuestionSerializer(obj.open_ended_questions.all(), many=True).data
+        unordered_questions = multiple_choice_questions + open_ended_questions
+        ordered_questions = sorted(unordered_questions, key=lambda question: question['order'])
 
-        return multiple_choice_questions + open_ended_questions
+        return ordered_questions
 
     def create(self, validated_data):
         questions_data = self.initial_data.get('questions')
         test = Test.objects.create(**validated_data)
         
-        for question_data in questions_data:
+        for index, question_data in enumerate(questions_data, start=1):
+            question_data['order'] = index
             choices_data = question_data.pop('choices', None)
             
             if choices_data:
