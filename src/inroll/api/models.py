@@ -33,8 +33,12 @@ class UserManager(BaseUserManager):
         return user
 
 class User(AbstractBaseUser):
-    email = models.EmailField(unique=True)
-    phone_number = models.PositiveBigIntegerField(unique=True)
+    email = models.EmailField(unique=True, error_messages={
+        "unique": "This email is already in use."
+    })
+    phone_number = models.PositiveBigIntegerField(unique=True, error_messages={
+        "unique": "This phone number is already in use."
+    })
     first_name = models.CharField(max_length=64)
     last_name = models.CharField(max_length=64)
     

@@ -46,21 +46,22 @@ class UserSerializer(serializers.ModelSerializer):
         model = None
         fields = ['id', 'password', 'email', 'phone_number', 'first_name', 'last_name']
 
-    def validate(self, data):
-        email = data.get('email')
-        phone_number = data.get('phone_number')
-        if Recruiter.objects.filter(email=email).exists() or Candidate.objects.filter(email=email).exists():
-            raise serializers.ValidationError({'email': 'This email is already in use.'})
-        if Recruiter.objects.filter(phone_number=phone_number).exists() or Candidate.objects.filter(phone_number=phone_number).exists():
-            raise serializers.ValidationError({'phone_number': 'This phone number is already in use.'})
-        return data
+    def validate_email(self, value):
+        if Candidate.objects.filter(email=value).exists() or Recruiter.objects.filter(email=value).exists():
+            raise serializers.ValidationError("This email is already in use.")
+        return value
+
+    def validate_phone_number(self, value):
+        if Candidate.objects.filter(phone_number=value).exists() or Recruiter.objects.filter(phone_number=value).exists():
+            raise serializers.ValidationError("This phone number is already in use.")
+        return value
 
 class CandidateSerializer(UserSerializer):
     class Meta(UserSerializer.Meta):
         model = Candidate
         fields = UserSerializer.Meta.fields
 
-class RecruiterSerializer(serializers.ModelSerializer):
+class RecruiterSerializer(UserSerializer):
     class Meta:
         model = Recruiter
         fields = UserSerializer.Meta.fields + ['company_name']
