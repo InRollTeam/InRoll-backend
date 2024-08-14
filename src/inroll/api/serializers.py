@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Test, Question, Choice, Submission, ChoiceAnswer, OpenEndedAnswer, Candidate, Recruiter, Answer
+from django.contrib.auth.password_validation import validate_password
 
 # Test related serializers
 class ChoiceSerializer(serializers.ModelSerializer):
@@ -40,7 +41,7 @@ class SubmissionSerializer(serializers.ModelSerializer):
 
 # User serializers
 class UserSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, validators=[validate_password])
 
     class Meta:
         model = None
