@@ -1,8 +1,18 @@
 from rest_framework import viewsets, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .models import Candidate, Recruiter, Test, Question, Choice, Submission, ChoiceAnswer, OpenEndedAnswer, UserTestMap
-from .serializers import CandidateSerializer, RecruiterSerializer, TestSerializer, QuestionSerializer, ChoiceSerializer, SubmissionSerializer, ChoiceAnswerSerializer, OpenEndedAnswerSerializer
+from .models import (
+    Candidate, Recruiter, 
+    Test, OpenEndedQuestion, MultipleChoiceQuestion, 
+    Choice, Submission, ChoiceAnswer, OpenEndedAnswer, 
+    UserTestMap,
+)
+from .serializers import (
+    CandidateSerializer, RecruiterSerializer, 
+    TestSerializer, MultipleChoiceQuestionSerializer, OpenEndedQuestionSerializer,
+    ChoiceSerializer, SubmissionSerializer, ChoiceAnswerSerializer, OpenEndedAnswerSerializer,
+    AssignTestSerializer,
+)
 from django.shortcuts import get_object_or_404
 
 class CandidateViewSet(viewsets.ModelViewSet):
@@ -17,13 +27,17 @@ class TestViewSet(viewsets.ModelViewSet):
     queryset = Test.objects.all()
     serializer_class = TestSerializer
 
-class QuestionViewSet(viewsets.ModelViewSet):
-    queryset = Question.objects.all()
-    serializer_class = QuestionSerializer
+class MultipleChoiceQuestionViewSet(viewsets.ModelViewSet):
+    queryset = MultipleChoiceQuestion.objects.all()
+    serializer_class = MultipleChoiceQuestionSerializer
+
+class OpenEndedQuestionViewSet(viewsets.ModelViewSet):
+    queryset = OpenEndedQuestion.objects.all()
+    serializer_class = OpenEndedQuestionSerializer
 
 class CorrectChoices(APIView):
     def get(self, request, pk, format=None):
-        question = get_object_or_404(Question, pk=pk)
+        question = get_object_or_404(MultipleChoiceQuestion, pk=pk)
         correct_choices = question.choices.filter(is_true=True)
         serializer = ChoiceSerializer(correct_choices, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -42,12 +56,14 @@ class GetRoutes(APIView):
         prefix = "http://localhost:8000/api/"
         apiroutes = [
             prefix+"tests/",
-            prefix+"questions/",
-            prefix+"questions/<int:pk>/correct-choices/",
+            prefix+"mc-questions/",
+            prefix+"mc-questions/<int:pk>/correct-choices/",
+            prefix+"oe-questions/",
             prefix+"choices/",
             prefix+"choice-answers/",
-            prefix+"open-ended-answers",
+            prefix+"oe-answers",
             prefix+"submissions/",
+            prefix+"get-submission/?candidate=<int:candidate_id>&test=<int:test_id>",
             prefix+"candidates/",
             prefix+"candidates/<int:id>/assigned-tests/",
             prefix+"candidates/<int:id>/submissions/",
@@ -93,3 +109,43 @@ class CandidateSubmissions(APIView):
         serializer = SubmissionSerializer(submissions, many=True)
         
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class AssignTest(APIView):
+    def post(self, request, format=None):
+        serializer = AssignTestSerializer(data=request.data)
+        if serializer.is_valid():
+            candidate_id = serializer.validated_data['candidate'].id
+            test_id = serializer.validated_data['test'].id
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+class GetSubmission(APIView):
+    def get(self, request, format=None):
+        candidate_id = request.query_params.get('candidate')
+        test_id = request.query_params.get('test')
+
+        if not candidate_id or not test_id:
+            return Response(
+                {'detail' : 'ID missing'},
+                status = status.HTTP_400_BAD_REQUEST
+            )
+        
+        candidate = get_object_or_404(Candidate, id=candidate_id)
+        test = get_object_or_404(Test, id=test_id)
+
+        submission = Submission.objects.filter(candidate=candidate, test=test).first() # Might need a better solution
+
+        if not submission:
+            return Response(
+                {'detail' : 'Submission does not exist'},
+                status = status.HTTP_404_NOT_FOUND
+            )
+
+        serializer = SubmissionSerializer(submission)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+            
+
+        
