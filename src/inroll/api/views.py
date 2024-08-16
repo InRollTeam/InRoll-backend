@@ -50,6 +50,22 @@ class SubmissionViewSet(viewsets.ModelViewSet):
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
 
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        test_id = serializer.validated_data.get('test')
+        candidate_id = serializer.validated_data.get('candidate')
+        test = get_object_or_404(Test, id=test_id)
+        candidate = get_object_or_404(Candidate, id=candidate_id)
+
+        submission, created = Submission.objects.get_or_create(test=test, candidate=candidate)
+
+        if created:
+            return Response(SubmissionSerializer(submission).data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(SubmissionSerializer(submission).data, status=status.HTTP_200_OK)
+
 # Do not forget to update this view in order to show all possible endpoints at root
 class GetRoutes(APIView):
     def get(self, request):
