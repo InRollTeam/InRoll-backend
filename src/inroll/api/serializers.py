@@ -72,9 +72,26 @@ class AnswerSerializer(serializers.ModelSerializer):
         fields = ['id', 'submission', 'question']
 
 class ChoiceAnswerSerializer(AnswerSerializer):
+    choices = serializers.ListField(child=serializers.IntegerField(), write_only=True)
+
     class Meta(AnswerSerializer.Meta):
         model = ChoiceAnswer
-        fields = AnswerSerializer.Meta.fields + ['choice']
+        fields = AnswerSerializer.Meta.fields + ['choices']
+
+    def create(self, validated_data):
+        choices_data = validated_data.pop('choices', [])
+        created_answers = []
+        
+        valid_choices = Choice.objects.filter(id__in=choices_data)
+        if len(valid_choices) != len(choices_data):
+            raise serializers.ValidationError("One or more choice_ids are invalid.")
+
+        for choice_id in choices_data:
+            choice = valid_choices.get(id=choice_id)
+            answer = ChoiceAnswer.objects.create(**validated_data, choice=choice)
+            created_answers.append(answer)
+
+        return created_answers
 
 class OpenEndedAnswerSerializer(AnswerSerializer):
     class Meta(AnswerSerializer.Meta):

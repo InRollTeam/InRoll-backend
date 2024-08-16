@@ -82,6 +82,49 @@ class OpenEndedAnswerViewSet(viewsets.ModelViewSet):
     queryset = OpenEndedAnswer.objects.all()
     serializer_class = OpenEndedAnswerSerializer
 
+class AnswerView(APIView):
+    def post(self, request, format=None):
+        question_id = request.data.get('question')
+
+        if not question_id:
+            return Response({'error': 'question is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if MultipleChoiceQuestion.objects.filter(id=question_id).exists():
+            serializer = ChoiceAnswerSerializer(data=request.data)
+        elif OpenEndedQuestion.objects.filter(id=question_id).exists():
+            serializer = OpenEndedAnswerSerializer(data=request.data)
+        else:
+            return Response({'error': 'Invalid question'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if serializer.is_valid():
+            answers = serializer.save()
+            if isinstance(answers, list):
+                serialized_data = ChoiceAnswerSerializer(answers, many=True).data
+            else:
+                serialized_data = serializer.data
+            return Response(serialized_data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, format=None):
+        question_id = request.data.get('question')
+        submission_id = request.data.get('submission')
+
+        if not question_id or not submission_id:
+            return Response({'error': 'question and submission are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if MultipleChoiceQuestion.objects.filter(id=question_id).exists():
+            answer = ChoiceAnswer.objects.filter(question_id=question_id, submission_id=submission_id)
+        elif OpenEndedQuestion.objects.filter(id=question_id).exists():
+            answer = OpenEndedAnswer.objects.filter(question_id=question_id, submission_id=submission_id)
+        else:
+            return Response({'error': 'Invalid question'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if answer:
+            answer.delete()
+            return Response({'message': 'Answer deleted successfully'}, status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response({'error': 'Answer not found'}, status=status.HTTP_404_NOT_FOUND)
+
 #Function for viewing all assigned tests for a specific candidate
 class CandidateAssignedTests(APIView):
     def get(self, request, id, format=None):

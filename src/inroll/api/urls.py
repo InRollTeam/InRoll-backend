@@ -8,7 +8,7 @@ from rest_framework_simplejwt.views import (
 from .views import (
     CandidateViewSet, RecruiterViewSet, CandidateAssignedTests, RecruiterAvailableTests, 
     TestViewSet, MultipleChoiceQuestionViewSet, OpenEndedQuestionViewSet,
-    ChoiceViewSet, SubmissionViewSet, ChoiceAnswerViewSet, OpenEndedAnswerViewSet, CorrectChoices,
+    ChoiceViewSet, SubmissionViewSet, ChoiceAnswerViewSet, OpenEndedAnswerViewSet, CorrectChoices, AnswerView,
     CandidateSubmissions,
     GetRoutes,
     AssignTest,
@@ -32,7 +32,8 @@ custom_urlpatterns = [
     path('candidates/<int:id>/submissions/', CandidateSubmissions.as_view(), name='candidate-submissions'),
     path('recruiters/<int:id>/available-tests/', RecruiterAvailableTests.as_view(), name='recruiter-available-tests'),
     path('assign-test', AssignTest.as_view(), name='assign-test'),
-    path('get-submission/', GetSubmission.as_view(), name='get-submission')
+    path('get-submission/', GetSubmission.as_view(), name='get-submission'),
+    path('answer/', AnswerView.as_view(), name='answer')
 ]
 
 custom_urlpatterns = format_suffix_patterns(custom_urlpatterns)
