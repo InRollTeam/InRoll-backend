@@ -33,12 +33,17 @@ class OpenEndedQuestionSerializer(QuestionSerializer):
         model = OpenEndedQuestion
         fields = QuestionSerializer.Meta.fields
 
+class TestInfoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Test
+        fields = ['id', 'recruiter', 'duration', 'until_date', 'title', 'body']
+
 class TestSerializer(serializers.ModelSerializer):
     questions = serializers.SerializerMethodField()
 
     class Meta:
         model = Test
-        fields = ['id', 'recruiter', 'duration', 'until_date', 'title', 'body', 'questions']
+        fields = TestInfoSerializer.Meta.fields + ['questions']
 
     def get_questions(self, obj):
         multiple_choice_questions = MultipleChoiceQuestionSerializer(obj.multiple_choice_questions.all(), many=True).data
