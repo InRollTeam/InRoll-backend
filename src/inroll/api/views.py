@@ -11,7 +11,7 @@ from .serializers import (
     CandidateSerializer, RecruiterSerializer, 
     TestSerializer, MultipleChoiceQuestionSerializer, OpenEndedQuestionSerializer,
     ChoiceSerializer, SubmissionSerializer, ChoiceAnswerSerializer, OpenEndedAnswerSerializer,
-    AssignTestSerializer,
+    AssignTestSerializer, TestInfoSerializer,
 )
 from django.shortcuts import get_object_or_404
 
@@ -97,7 +97,7 @@ class RecruiterAvailableTests(APIView):
     def get(self, request, id, format=None):
         recruiter = get_object_or_404(Recruiter, id=id)
         available_tests = Test.objects.filter(recruiter=recruiter)
-        serializer = TestSerializer(available_tests, many=True)
+        serializer = TestInfoSerializer(available_tests, many=True)
 
         return Response(serializer.data, status=status.HTTP_200_OK)
 
